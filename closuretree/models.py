@@ -121,9 +121,5 @@ class ClosureModel(models.Model):
         return val
 
     def delete(self, *args, **kwargs):
-        tree_width = (self._mpttfield('right') -
-                      self._mpttfield('left') + 1)
-        target_right = self._mpttfield('right')
-        tree_id = self._mpttfield('tree_id')
-        self._tree_manager._close_gap(tree_width, target_right, tree_id)
-        super(MPTTModel, self).delete(*args, **kwargs)
+        self._closure_deletelink(self._closure_old_parent_pk)
+        super(ClosureModel, self).delete(*args, **kwargs)
