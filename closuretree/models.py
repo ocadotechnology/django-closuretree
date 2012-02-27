@@ -24,6 +24,7 @@ class ClosureModel(models.Model):
         model = type('%sClosure' % cls.__name__, (models.Model,), {
             'parent': models.ForeignKey(cls.__name__, related_name=cls._closure_parentref()),
             'child': models.ForeignKey(cls.__name__, related_name=cls._closure_childref()),
+            'depth': models.IntegerField(),
             '__module__':   cls.__module__,
             '__unicode__': lambda self: "Closure from %s to %s" % (self.parent, self.child),
         })
@@ -34,7 +35,7 @@ class ClosureModel(models.Model):
     def rebuildtable(cls):
         cls._closure_model.objects.all().delete()
         bc = getattr(cls._closure_model.objects, "bulk_create", mybulkcreate)
-        bc([cls._closure_model(parent_id=x['pk'], child_id=x['pk']) for x in cls.objects.values("pk")])
+        bc([cls._closure_model(parent_id=x['pk'], child_id=x['pk'], depth=0) for x in cls.objects.values("pk")])
         for node in cls.objects.all():
             node._closure_createlink()
 
@@ -58,9 +59,9 @@ class ClosureModel(models.Model):
         #self._closure_model.objects.filter(parent__id__in=oldparentpks,child__id__in=oldchildids).delete()
 
     def _closure_createlink(self):
-        linkparents = [x['parent'] for x in self._closure_model.objects.filter(child__id=self._closure_parent_pk).values("parent")]
-        linkchildren = [x['child'] for x in self._closure_model.objects.filter(parent__id=self.pk).values("child")]
-        newlinks = [self._closure_model(parent_id=p, child_id=c) for p in linkparents for c in linkchildren]
+        linkparents = self._closure_model.objects.filter(child__id=self._closure_parent_pk).values("parent", "depth")
+        linkchildren = self._closure_model.objects.filter(parent__id=self.pk).values("child", "depth")
+        newlinks = [self._closure_model(parent_id=p['parent'], child_id=c['child'], depth=p['depth']+c['depth']+1) for p in linkparents for c in linkchildren]
         bc = getattr(self._closure_model.objects, "bulk_create", mybulkcreate)
         bc(newlinks)
 
@@ -91,7 +92,7 @@ class ClosureModel(models.Model):
         if self.is_root_node():
             return self
 
-        return self.get_ancestors().filter(depth?)
+        return self.get_ancestors().order_by()
 
         return self._tree_manager._mptt_filter(
             tree_id=self._mpttfield('tree_id'),
@@ -170,7 +171,7 @@ class ClosureModel(models.Model):
         create = not self.id
         val = super(ClosureModel, self).save(*args, **kwargs)
         if create:
-            cm = self._closure_model(parent=self, child=self)
+            cm = self._closure_model(parent=self, child=self, depth=0)
             cm.save()
         if self._closure_old_parent_pk != self.pk:
             #Changed parents.
