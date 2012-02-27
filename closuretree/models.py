@@ -52,7 +52,7 @@ class ClosureModel(models.Model):
         return field.value_from_object(self)
 
     def _closure_deletelink(self, oldparentpk):
-        self._closure_model.objects.filter({"parent__%s__child" % self._closure_parentref():oldparentpk,"child__%s__parent" % self._closure_childref():self.pk}).delete()
+        self._closure_model.objects.filter(**{"parent__%s__child" % self._closure_parentref():oldparentpk,"child__%s__parent" % self._closure_childref():self.pk}).delete()
         #oldparentpks = [x['parent'] for x in self._closure_model.objects.filter(child__id=oldparentpk).values("parent")]
         #oldchildids = [x['child'] for x in self._closure_model.objects.filter(parent__id=self.id).values("child")]
         #self._closure_model.objects.filter(parent__id__in=oldparentpks,child__id__in=oldchildids).delete()
@@ -72,21 +72,26 @@ class ClosureModel(models.Model):
                 # Filter on pk for efficiency.
                 return self.__class__.objects.filter(pk=self.pk)
 
-        qs = self.__class__.objects.filter({"__child" % self._closure_parentref():self.pk})
+        qs = self.__class__.objects.filter(**{"%s__child" % self._closure_parentref():self.pk})
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
 
     def get_descendants(self, include_self=False):
-        qs = self.__class__.objects.
+        qs = self.__class__.objects.filter(**{"%s__parent" % self._closure_childref():self.pk})
+        if not include_self:
+            qs = qs.exclude(pk=self.pk)
+        return qs
 
 
     def get_root(self):
         """
         Returns the root node of this model instance's tree.
         """
-        if self.is_root_node() and type(self) == self._tree_manager.tree_model:
+        if self.is_root_node():
             return self
+
+        return self.get_ancestors().filter(depth?)
 
         return self._tree_manager._mptt_filter(
             tree_id=self._mpttfield('tree_id'),
