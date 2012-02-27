@@ -1,5 +1,5 @@
 from distutils.core import setup
-from infmis.version import __version__
+from closuretree.version import __version__
 
 setup(
     name='django-closuretree',
