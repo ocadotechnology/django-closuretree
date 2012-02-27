@@ -7,9 +7,6 @@ def mybulkcreate(objs):
         obj.save()
 
 class ClosureModel(models.Model):
-    """
-    Base class for tree models.
-    """
 
     class Meta:
         abstract = True
@@ -86,83 +83,24 @@ class ClosureModel(models.Model):
 
 
     def get_root(self):
-        """
-        Returns the root node of this model instance's tree.
-        """
         if self.is_root_node():
             return self
 
-        return self.get_ancestors().order_by()
-
-        return self._tree_manager._mptt_filter(
-            tree_id=self._mpttfield('tree_id'),
-            parent__isnull=True
-        ).get()
-
-    def get_siblings(self, include_self=False):
-        """
-        Creates a ``QuerySet`` containing siblings of this model
-        instance. Root nodes are considered to be siblings of other root
-        nodes.
-
-        If ``include_self`` is ``True``, the ``QuerySet`` will also
-        include this model instance.
-        """
-        if self.is_root_node():
-            queryset = self._tree_manager._mptt_filter(parent__isnull=True)
-        else:
-            parent_id = getattr(self, '%s_id' % self._mptt_meta.parent_attr)
-            queryset = self._tree_manager._mptt_filter(parent__id=parent_id)
-        if not include_self:
-            queryset = queryset.exclude(pk=self.pk)
-        return queryset
+        return self.get_ancestors().order_by("-%s__depth" % self._closure_parentref())[0]
 
     def is_child_node(self):
-        """
-        Returns ``True`` if this model instance is a child node, ``False``
-        otherwise.
-        """
         return not self.is_root_node()
 
-    def is_leaf_node(self):
-        """
-        Returns ``True`` if this model instance is a leaf node (it has no
-        children), ``False`` otherwise.
-        """
-        return not self.get_descendant_count()
-
     def is_root_node(self):
-        """
-        Returns ``True`` if this model instance is a root node,
-        ``False`` otherwise.
-        """
         return self._closure_parent_pk is None
 
     def is_descendant_of(self, other, include_self=False):
-        """
-        Returns ``True`` if this model is a descendant of the given node,
-        ``False`` otherwise.
-        If include_self is True, also returns True if the two nodes are the same node.
-        """
-        opts = self._mptt_meta
-
         if include_self and other.pk == self.pk:
             return True
 
-        if getattr(self, opts.tree_id_attr) != getattr(other, opts.tree_id_attr):
-            return False
-        else:
-            left = getattr(self, opts.left_attr)
-            right = getattr(self, opts.right_attr)
-
-            return left > getattr(other, opts.left_attr) and right < getattr(other, opts.right_attr)
+        return self._closure_model.objects.filter(parent=other,child=self).exists()
 
     def is_ancestor_of(self, other, include_self=False):
-        """
-        Returns ``True`` if this model is an ancestor of the given node,
-        ``False`` otherwise.
-        If include_self is True, also returns True if the two nodes are the same node.
-        """
         if include_self and other.pk == self.pk:
             return True
         return other.is_descendant_of(self)
