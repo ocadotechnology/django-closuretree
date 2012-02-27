@@ -52,7 +52,7 @@ class ClosureModel(models.Model):
         return field.value_from_object(self)
 
     def _closure_deletelink(self, oldparentpk):
-        self._closure_model.objects.filter(parent__tcclosure_children__child=oldparentpk,child__tcclosure_parents__parent=self.pk).delete()
+        self._closure_model.objects.filter({"parent__%s__child" % self._closure_parentref():oldparentpk,"child__%s__parent" % self._closure_childref():self.pk}).delete()
         #oldparentpks = [x['parent'] for x in self._closure_model.objects.filter(child__id=oldparentpk).values("parent")]
         #oldchildids = [x['child'] for x in self._closure_model.objects.filter(parent__id=self.id).values("child")]
         #self._closure_model.objects.filter(parent__id__in=oldparentpks,child__id__in=oldchildids).delete()
@@ -72,61 +72,13 @@ class ClosureModel(models.Model):
                 # Filter on pk for efficiency.
                 return self.__class__.objects.filter(pk=self.pk)
 
-        qs = self.__class__.objects.filter(tcclosure_children__child=self.pk)
+        qs = self.__class__.objects.filter({"__child" % self._closure_parentref():self.pk})
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
 
-    def get_children(self):
-        """
-        Returns a ``QuerySet`` containing the immediate children of this
-        model instance, in tree order.
-
-        The benefit of using this method over the reverse relation
-        provided by the ORM to the instance's children is that a
-        database query can be avoided in the case where the instance is
-        a leaf node (it has no children).
-
-        If called from a template where the tree has been walked by the
-        ``cache_tree_children`` filter, no database query is required.
-        """
-        if hasattr(self, '_cached_children'):
-            qs = self._tree_manager.filter(pk__in=[n.pk for n in self._cached_children])
-            qs._result_cache = self._cached_children
-            return qs
-        else:
-            if self.is_leaf_node():
-                return self._tree_manager.none()
-
-            return self._tree_manager._mptt_filter(parent=self)
-
     def get_descendants(self, include_self=False):
-        """
-        Creates a ``QuerySet`` containing descendants of this model
-        instance, in tree order.
-
-        If ``include_self`` is ``True``, the ``QuerySet`` will also
-        include this model instance.
-        """
-        if self.is_leaf_node():
-            if not include_self:
-                return self._tree_manager.none()
-            else:
-                return self._tree_manager.filter(pk=self.pk)
-
-        opts = self._mptt_meta
-        left = getattr(self, opts.left_attr)
-        right = getattr(self, opts.right_attr)
-
-        if not include_self:
-            left += 1
-            right -= 1
-
-        return self._tree_manager._mptt_filter(
-            tree_id=self._mpttfield('tree_id'),
-            left__gte=left,
-            left__lte=right
-        )
+        qs = self.__class__.objects.
 
 
     def get_root(self):
