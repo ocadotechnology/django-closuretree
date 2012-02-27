@@ -1,5 +1,6 @@
 from distutils.core import setup
 from closuretree.version import __version__
+import os
 
 setup(
     name='django-closuretree',
