@@ -2,6 +2,10 @@ from django.db import models
 from django.db.models.query import Q
 from django.utils.translation import ugettext as _
 
+def mybulkcreate(objs):
+    for obj in objs:
+        obj.save()
+
 class ClosureModel(models.Model):
     """
     Base class for tree models.
@@ -27,6 +31,14 @@ class ClosureModel(models.Model):
         return model
 
     @classmethod
+    def rebuildtable(cls):
+        cls._closure_model.objects.all().delete()
+        bc = getattr(cls._closure_model.objects, "bulk_create", mybulkcreate)
+        bc([cls._closure_model(parent_id=x['pk'], child_id=x['pk']) for x in cls.objects.values("pk")])
+        for node in cls.objects.all():
+            node._closure_createlink()
+
+    @classmethod
     def _closure_parentref(cls):
         return "%sclosure_children" % cls.__name__.lower()
 
@@ -49,9 +61,6 @@ class ClosureModel(models.Model):
         linkparents = [x['parent'] for x in self._closure_model.objects.filter(child__id=self._closure_parent_pk).values("parent")]
         linkchildren = [x['child'] for x in self._closure_model.objects.filter(parent__id=self.pk).values("child")]
         newlinks = [self._closure_model(parent_id=p, child_id=c) for p in linkparents for c in linkchildren]
-        def mybulkcreate(objs):
-            for obj in objs:
-                obj.save()
         bc = getattr(self._closure_model.objects, "bulk_create", mybulkcreate)
         bc(newlinks)
 
@@ -169,7 +178,7 @@ class ClosureModel(models.Model):
         Returns ``True`` if this model instance is a root node,
         ``False`` otherwise.
         """
-        return getattr(self, '%s_id' % self.ClosureMeta.parent_attr) is None
+        return self._closure_parent_pk is None
 
     def is_descendant_of(self, other, include_self=False):
         """
