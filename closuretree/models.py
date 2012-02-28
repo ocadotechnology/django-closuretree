@@ -84,6 +84,17 @@ class ClosureModel(models.Model):
             qs = qs.exclude(pk=self.pk)
         return qs
 
+    # Call like: blah.prepopulate(blah.get_descendants().select_related(stuff))
+    def prepopulate(self, queryset):
+        objs = list(queryset)
+        hashobjs = dict([(x.pk,x) for x in objs] + [(self.pk, self)])
+        for d in objs:
+            if d._closure_parent_pk in hashobjs:
+                p = hashobjs[d._closure_parent_pk]
+                if not hasattr(p, "_cached_children"):
+                    p._cached_children = []
+                p._cached_children.append(d)
+
     def get_children(self):
         if hasattr(self, '_cached_children'):
             qs = self.__class__.objects.filter(pk__in=[n.pk for n in self._cached_children])
@@ -121,7 +132,7 @@ class ClosureModel(models.Model):
         if create:
             cm = self._closure_model(parent=self, child=self, depth=0)
             cm.save()
-        if self._closure_old_parent_pk != self.pk:
+        if self._closure_old_parent_pk != self._closure_parent_pk:
             #Changed parents.
             if self._closure_old_parent_pk:
                 self._closure_deletelink(self._closure_old_parent_pk)
