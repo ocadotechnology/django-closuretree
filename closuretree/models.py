@@ -49,8 +49,8 @@ class ClosureModel(models.Model):
 
     @property
     def _closure_parent_pk(self):
-        field = self._meta.get_field(self.ClosureMeta.parent_attr)
-        return field.value_from_object(self)
+        parent = getattr(self, self.ClosureMeta.parent_attr)
+        return parent.id if parent else None
 
     def _closure_deletelink(self, oldparentpk):
         self._closure_model.objects.filter(**{"parent__%s__child" % self._closure_parentref():oldparentpk,"child__%s__parent" % self._closure_childref():self.pk}).delete()
