@@ -24,6 +24,9 @@ class ClosureModel(models.Model):
             'depth': models.IntegerField(),
             '__module__':   cls.__module__,
             '__unicode__': lambda self: "Closure from %s to %s" % (self.parent, self.child),
+            'Meta': type('Meta', (object,), {
+                'unique_together':  (("parent", "child"),)
+            }),
         })
         setattr(cls, "_closure_model", model)
         return model
@@ -81,6 +84,13 @@ class ClosureModel(models.Model):
             qs = qs.exclude(pk=self.pk)
         return qs
 
+    def get_children(self):
+        if hasattr(self, '_cached_children'):
+            qs = self.__class__.objects.filter(pk__in=[n.pk for n in self._cached_children])
+            qs._result_cache = self._cached_children
+            return qs
+        else:
+            return self.__class__.objects.filter(**{"%s__parent" % self._closure_childref():self.pk,"%s__depth" % self._closure_childref():1})
 
     def get_root(self):
         if self.is_root_node():
