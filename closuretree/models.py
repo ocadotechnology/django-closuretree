@@ -73,17 +73,19 @@ class ClosureModel(models.Model):
                 # Filter on pk for efficiency.
                 return self.__class__.objects.filter(pk=self.pk)
 
-        qs = self.__class__.objects.filter(**{"%s__child" % self._closure_parentref():self.pk})
+        params = {"%s__child" % self._closure_parentref():self.pk}
         if depth is not None:
-            qs = qs.filter(**{"%s__depth" % self._closure_parentref():depth})
+            params["%s__depth__lte" % self._closure_parentref()] = depth
+        qs = self.__class__.objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
 
     def get_descendants(self, include_self=False, depth=None):
-        qs = self.__class__.objects.filter(**{"%s__parent" % self._closure_childref():self.pk})
+        params = {"%s__parent" % self._closure_childref():self.pk}
         if depth is not None:
-            qs = qs.filter(**{"%s__depth" % self._closure_childref():depth})
+            params["%s__depth__lte" % self._closure_childref()] = depth
+        qs = self.__class__.objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
