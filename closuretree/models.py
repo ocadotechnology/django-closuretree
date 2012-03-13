@@ -65,7 +65,7 @@ class ClosureModel(models.Model):
         bc = getattr(self._closure_model.objects, "bulk_create", mybulkcreate)
         bc(newlinks)
 
-    def get_ancestors(self, include_self=False):
+    def get_ancestors(self, include_self=False, depth=None):
         if self.is_root_node():
             if not include_self:
                 return self.__class__.objects.none()
@@ -74,12 +74,16 @@ class ClosureModel(models.Model):
                 return self.__class__.objects.filter(pk=self.pk)
 
         qs = self.__class__.objects.filter(**{"%s__child" % self._closure_parentref():self.pk})
+        if depth is not None:
+            qs = qs.filter(**{"%s__depth" % self._closure_parentref():depth})
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
 
-    def get_descendants(self, include_self=False):
+    def get_descendants(self, include_self=False, depth=None):
         qs = self.__class__.objects.filter(**{"%s__parent" % self._closure_childref():self.pk})
+        if depth is not None:
+            qs = qs.filter(**{"%s__depth" % self._closure_childref():depth})
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
@@ -101,7 +105,7 @@ class ClosureModel(models.Model):
             qs._result_cache = self._cached_children
             return qs
         else:
-            return self.__class__.objects.filter(**{"%s__parent" % self._closure_childref():self.pk,"%s__depth" % self._closure_childref():1})
+            return self.get_descendants(include_self=False, depth=1)
 
     def get_root(self):
         if self.is_root_node():
