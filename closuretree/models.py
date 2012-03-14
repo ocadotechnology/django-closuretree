@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.query import Q
-from django.utils.translation import ugettext as _
 
 def mybulkcreate(objs):
     for obj in objs:
