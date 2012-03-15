@@ -72,15 +72,15 @@ class ClosureModel(models.Model):
     def get_ancestors(self, include_self=False, depth=None):
         if self.is_root_node():
             if not include_self:
-                return self.__class__.objects.none()
+                return self.__class__._toplevel().objects.none()
             else:
                 # Filter on pk for efficiency.
-                return self.__class__.objects.filter(pk=self.pk)
+                return self.__class__._toplevel().objects.filter(pk=self.pk)
 
         params = {"%s__child" % self._closure_parentref():self.pk}
         if depth is not None:
             params["%s__depth__lte" % self._closure_parentref()] = depth
-        qs = self.__class__.objects.filter(**params)
+        qs = self.__class__._toplevel().objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
@@ -89,7 +89,7 @@ class ClosureModel(models.Model):
         params = {"%s__parent" % self._closure_childref():self.pk}
         if depth is not None:
             params["%s__depth__lte" % self._closure_childref()] = depth
-        qs = self.__class__.objects.filter(**params)
+        qs = self.__class__._toplevel().objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
         return qs
@@ -107,7 +107,7 @@ class ClosureModel(models.Model):
 
     def get_children(self):
         if hasattr(self, '_cached_children'):
-            qs = self.__class__.objects.filter(pk__in=[n.pk for n in self._cached_children])
+            qs = self.__class__._toplevel().objects.filter(pk__in=[n.pk for n in self._cached_children])
             qs._result_cache = self._cached_children
             return qs
         else:
