@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.query import Q
-from django.utils.translation import ugettext as _
 
 def mybulkcreate(objs):
     for obj in objs:
@@ -32,6 +31,11 @@ class ClosureModel(models.Model):
         return model
 
     @classmethod
+    def _toplevel(cls):
+        x = list(set(ClosureModel.__subclasses__()) & cls._meta.get_parent_list())
+        return x[0] if x else cls
+
+    @classmethod
     def rebuildtable(cls):
         cls._closure_model.objects.all().delete()
         bc = getattr(cls._closure_model.objects, "bulk_create", mybulkcreate)
@@ -41,11 +45,11 @@ class ClosureModel(models.Model):
 
     @classmethod
     def _closure_parentref(cls):
-        return "%sclosure_children" % cls.__name__.lower()
+        return "%sclosure_children" % cls._toplevel().__name__.lower()
 
     @classmethod
     def _closure_childref(cls):
-        return "%sclosure_parents" % cls.__name__.lower()
+        return "%sclosure_parents" % cls._toplevel().__name__.lower()
 
     @property
     def _closure_parent_pk(self):
