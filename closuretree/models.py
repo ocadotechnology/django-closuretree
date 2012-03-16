@@ -12,7 +12,7 @@ class ClosureModel(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(ClosureModel, self).__init__(*args, **kwargs)
-        self._closure_old_parent_pk = self._closure_parent_pk
+        self._closure_change_init()
 
     #TODO: Move to metaclass
     @classmethod
@@ -53,8 +53,11 @@ class ClosureModel(models.Model):
 
     @property
     def _closure_parent_pk(self):
-        parent = getattr(self, self.ClosureMeta.parent_attr)
-        return parent.id if parent else None
+        if hasattr(self, "%s_id" % self.ClosureMeta.parent_attr):
+            return getattr(self, "%s_id" % self.ClosureMeta.parent_attr)
+        else:
+            parent = getattr(self, self.ClosureMeta.parent_attr)
+            return parent.id if parent else None
 
     def _closure_deletelink(self, oldparentpk):
         self._closure_model.objects.filter(**{"parent__%s__child" % self._closure_parentref():oldparentpk,"child__%s__parent" % self._closure_childref():self.pk}).delete()
@@ -136,18 +139,27 @@ class ClosureModel(models.Model):
             return True
         return other.is_descendant_of(self)
 
+    def _closure_change_init(self):
+        self._closure_old_parent_pk = self._closure_parent_pk
+
+    def _closure_change_check(self):
+        return self._closure_old_parent_pk != self._closure_parent_pk
+
+    def _closure_change_oldparent(self):
+        return self._closure_old_parent_pk
+
     def save(self, *args, **kwargs):
         create = not self.id
         val = super(ClosureModel, self).save(*args, **kwargs)
         if create:
             cm = self._closure_model(parent=self, child=self, depth=0)
             cm.save()
-        if self._closure_old_parent_pk != self._closure_parent_pk:
+        if self._closure_change_check():
             #Changed parents.
-            if self._closure_old_parent_pk:
-                self._closure_deletelink(self._closure_old_parent_pk)
+            if self._closure_change_oldparent():
+                self._closure_deletelink(self._closure_change_oldparent())
             self._closure_createlink()
-        self._closure_old_parent_pk = self._closure_parent_pk
+        self._closure_change_init()
 
         return val
 
