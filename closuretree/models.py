@@ -10,9 +10,12 @@ class ClosureModel(models.Model):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        super(ClosureModel, self).__init__(*args, **kwargs)
-        self._closure_change_init()
+    def __setattr__(self, name, value):
+        print "setattr, ", name, value
+        if name.startswith(self._closure_sentinel_attr) and hasattr(self, name) and not self._closure_change_check():
+            #Already set once, and not already stored the old value, need to take a copy before it changes
+            self._closure_change_init()
+        super(ClosureModel,self).__setattr__(name, value)
 
     #TODO: Move to metaclass
     @classmethod
@@ -50,6 +53,13 @@ class ClosureModel(models.Model):
     @classmethod
     def _closure_childref(cls):
         return "%sclosure_parents" % cls._toplevel().__name__.lower()
+
+    @property
+    def _closure_sentinel_attr(self):
+        if hasattr(self.ClosureMeta,"sentinel_attr"):
+            return self.ClosureMeta.sentinel_attr
+        else:
+            return self.ClosureMeta.parent_attr
 
     @property
     def _closure_parent_pk(self):
@@ -143,7 +153,7 @@ class ClosureModel(models.Model):
         self._closure_old_parent_pk = self._closure_parent_pk
 
     def _closure_change_check(self):
-        return self._closure_old_parent_pk != self._closure_parent_pk
+        return hasattr(self,"_closure_old_parent_pk")
 
     def _closure_change_oldparent(self):
         return self._closure_old_parent_pk
@@ -159,10 +169,10 @@ class ClosureModel(models.Model):
             if self._closure_change_oldparent():
                 self._closure_deletelink(self._closure_change_oldparent())
             self._closure_createlink()
-        self._closure_change_init()
+            delattr(self, "_closure_old_parent_pk")
 
         return val
 
     def delete(self, *args, **kwargs):
-        self._closure_deletelink(self._closure_old_parent_pk)
+        self._closure_deletelink(self._closure_parent_pk)
         super(ClosureModel, self).delete(*args, **kwargs)
