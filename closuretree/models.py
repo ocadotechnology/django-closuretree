@@ -11,7 +11,6 @@ class ClosureModel(models.Model):
         abstract = True
 
     def __setattr__(self, name, value):
-        print "setattr, ", name, value
         if name.startswith(self._closure_sentinel_attr) and hasattr(self, name) and not self._closure_change_check():
             #Already set once, and not already stored the old value, need to take a copy before it changes
             self._closure_change_init()
