@@ -111,10 +111,10 @@ class ClosureModel(models.Model):
         objs = list(queryset)
         hashobjs = dict([(x.pk,x) for x in objs] + [(self.pk, self)])
         for d in objs:
+            d._cached_children = []
+        for d in objs:
             if d._closure_parent_pk in hashobjs:
                 p = hashobjs[d._closure_parent_pk]
-                if not hasattr(p, "_cached_children"):
-                    p._cached_children = []
                 p._cached_children.append(d)
 
     def get_children(self):
