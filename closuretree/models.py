@@ -110,7 +110,7 @@ class ClosureModel(models.Model):
     def prepopulate(self, queryset):
         objs = list(queryset)
         hashobjs = dict([(x.pk,x) for x in objs] + [(self.pk, self)])
-        for d in objs:
+        for d in hashobjs.values():
             d._cached_children = []
         for d in objs:
             if d._closure_parent_pk in hashobjs:
