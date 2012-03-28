@@ -95,7 +95,7 @@ class ClosureModel(models.Model):
         qs = self.__class__._toplevel().objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
-        return qs
+        return qs.order_by("%s__depth" % self._closure_parentref())
 
     def get_descendants(self, include_self=False, depth=None):
         params = {"%s__parent" % self._closure_childref():self.pk}
@@ -104,7 +104,7 @@ class ClosureModel(models.Model):
         qs = self.__class__._toplevel().objects.filter(**params)
         if not include_self:
             qs = qs.exclude(pk=self.pk)
-        return qs
+        return qs.order_by("%s__depth" % self._closure_childref())
 
     # Call like: blah.prepopulate(blah.get_descendants().select_related(stuff))
     def prepopulate(self, queryset):
