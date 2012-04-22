@@ -23,10 +23,6 @@ class TCSUB(TC):
 class TCSUB2(TCSUB):
 	ef = models.IntegerField()
 
-TCClosure = TC.create_closure_model()
-
-
-
 class A(models.Model):
 	foo = models.CharField(max_length=1, default='N')
 	

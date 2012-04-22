@@ -1,11 +1,35 @@
 from django.db import models
 from django.db.models.query import Q
+from django.db.models.base import ModelBase
+import sys
 
 def mybulkcreate(objs):
     for obj in objs:
         obj.save()
 
+def create_closure_model(cls):
+    model = type('%sClosure' % cls.__name__, (models.Model,), {
+        'parent': models.ForeignKey(cls.__name__, related_name=cls._closure_parentref()),
+        'child': models.ForeignKey(cls.__name__, related_name=cls._closure_childref()),
+        'depth': models.IntegerField(),
+        '__module__':   cls.__module__,
+        '__unicode__': lambda self: "Closure from %s to %s" % (self.parent, self.child),
+        'Meta': type('Meta', (object,), {
+            'unique_together':  (("parent", "child"),)
+        }),
+    })
+    setattr(cls, "_closure_model", model)
+    return model
+
+class ClosureModelBase(ModelBase):
+    #This is a metaclass. MAGIC!
+    def __init__(self, name, bases, dict):
+        super(ClosureModelBase, self).__init__(name, bases, dict)
+        if not self._meta.get_parent_list() and self.__module__ != __name__:
+            setattr(sys.modules[self.__module__], '%sClosure' % self.__name__, create_closure_model(self))
+
 class ClosureModel(models.Model):
+    __metaclass__ = ClosureModelBase
 
     class Meta:
         abstract = True
@@ -15,22 +39,6 @@ class ClosureModel(models.Model):
             #Already set once, and not already stored the old value, need to take a copy before it changes
             self._closure_change_init()
         super(ClosureModel,self).__setattr__(name, value)
-
-    #TODO: Move to metaclass
-    @classmethod
-    def create_closure_model(cls):
-        model = type('%sClosure' % cls.__name__, (models.Model,), {
-            'parent': models.ForeignKey(cls.__name__, related_name=cls._closure_parentref()),
-            'child': models.ForeignKey(cls.__name__, related_name=cls._closure_childref()),
-            'depth': models.IntegerField(),
-            '__module__':   cls.__module__,
-            '__unicode__': lambda self: "Closure from %s to %s" % (self.parent, self.child),
-            'Meta': type('Meta', (object,), {
-                'unique_together':  (("parent", "child"),)
-            }),
-        })
-        setattr(cls, "_closure_model", model)
-        return model
 
     @classmethod
     def _toplevel(cls):
