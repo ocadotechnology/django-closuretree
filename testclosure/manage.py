@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 from django.core.management import execute_manager
 import os
 try:
