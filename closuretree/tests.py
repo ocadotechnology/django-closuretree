@@ -1,12 +1,40 @@
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
-"""
-
+"""Tests for closuretree"""
 from django.test import TestCase
-from tclosure.models import TC, TCClosure
+from django.db import models
+from closuretree.models import ClosureModel
+
+class TC(ClosureModel):
+    parent2 = models.ForeignKey("self", related_name="children", null=True, blank=True)
+    name = models.CharField(max_length=32)
+    blah = models.ForeignKey("Blah", related_name="tcs", null=True, blank=True)
+
+    class ClosureMeta(object):
+        parent_attr = "parent2"
+
+    def __unicode__(self):
+        return "%s: %s" % (self.id, self.name)
+
+class Blah(models.Model):
+    thing = models.CharField(max_length=32)
+
+class TCSUB(TC):
+    extrafield = models.IntegerField()
+
+class TCSUB2(TCSUB):
+    ef = models.IntegerField()
+
+class A(models.Model):
+    foo = models.CharField(max_length=1, default='N')
+    
+    def __init__(self, *args, **kwargs):
+        super(A, self).__init__(*args, **kwargs)
+        
+
+    def __setattr__(self, item, value):
+        super(A, self).__setattr__(item, value)
+    
+class B(A):
+    bar = models.CharField(max_length=1, default='X')
 
 class BaseTesting(TestCase):
 
@@ -20,24 +48,24 @@ class BaseTesting(TestCase):
         """
         Tests that adding a new parent relationship creates closures
         """
-        self.failUnlessEqual(TCClosure.objects.count(), 17)
+        self.failUnlessEqual(TCClosure.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 18)
+        self.failUnlessEqual(TCClosure.objects.count(), 5)
         self.c.parent2 = self.b
         self.c.save()
         self.d.parent2 = self.c
         self.d.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 23)
+        self.failUnlessEqual(TCClosure.objects.count(), 10)
 
     def test_deletion(self):
-        self.failUnlessEqual(TCClosure.objects.count(), 17)
+        self.failUnlessEqual(TCClosure.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 18)
+        self.failUnlessEqual(TCClosure.objects.count(), 5)
         self.b.parent2 = None
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 17)
+        self.failUnlessEqual(TCClosure.objects.count(), 4)
 
 class AncestorTesting(TestCase):
 
