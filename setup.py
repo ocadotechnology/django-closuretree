@@ -1,9 +1,11 @@
-from distutils.core import setup
-from closuretree.version import __version__
+from setuptools import setup
+from gitversion import get_git_version
 import os
 
 setup(
     name='django-closuretree',
-    version=__version__,
-    packages=[root for root,dir,files in  os.walk('closuretree') if '__init__.py' in files]
+    version=get_git_version(),
+    packages=['closuretree'],
+    author='Mike Bryant',
+    author_email='mike.bryant@ocado.com',
 )

@@ -1,0 +1,5 @@
+--find-links http://download.logilab.org/pub/common/
+logilab-common>=0.58.2
+-e git+git@git:python-gitversion#egg=gitversion
+pylint
+django-jenkins

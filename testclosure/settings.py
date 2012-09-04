@@ -90,4 +90,5 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'closuretree',
 	'tclosure',
+    'django_jenkins',
 )
