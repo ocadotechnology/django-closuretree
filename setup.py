@@ -9,4 +9,5 @@ setup(
     author='Mike Bryant',
     author_email='mike.bryant@ocado.com',
     install_requires=['django'],
+    setup_requires=['gitversion'],
 )
