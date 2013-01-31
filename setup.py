@@ -8,6 +8,6 @@ setup(
     packages=['closuretree'],
     author='Mike Bryant',
     author_email='mike.bryant@ocado.com',
-    install_requires=['django'],
+    install_requires=['django >= 1.4'],
     setup_requires=['gitversion'],
 )

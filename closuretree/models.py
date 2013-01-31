@@ -16,11 +16,6 @@ from django.db import models
 from django.db.models.base import ModelBase
 import sys
 
-def mybulkcreate(objs):
-    """For when there is no Model.objects.bulk_create."""
-    for obj in objs:
-        obj.save()
-
 def _closure_model_unicode(self):
     """__unicode__ implementation for the dynamically created
         <Model>Closure model.
@@ -104,12 +99,7 @@ class ClosureModel(models.Model):
     def rebuildtable(cls):
         """Regenerate the entire closuretree."""
         cls._closure_model.objects.all().delete()
-        bulk_create = getattr(
-            cls._closure_model.objects,
-            "bulk_create",
-            mybulkcreate
-        )
-        bulk_create([cls._closure_model(
+        cls._closure_model.objects.bulk_create([cls._closure_model(
             parent_id=x['pk'],
             child_id=x['pk'],
             depth=0
@@ -174,12 +164,7 @@ class ClosureModel(models.Model):
             child_id=c['child'],
             depth=p['depth']+c['depth']+1
         ) for p in linkparents for c in linkchildren]
-        bulk_create = getattr(
-            self._closure_model.objects,
-            "bulk_create",
-            mybulkcreate
-        )
-        bulk_create(newlinks)
+        self._closure_model.objects.bulk_create(newlinks)
 
     def get_ancestors(self, include_self=False, depth=None):
         """Return all the ancestors of this object."""

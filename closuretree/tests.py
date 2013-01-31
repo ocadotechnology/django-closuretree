@@ -58,6 +58,9 @@ class BaseTestCase(TestCase):
 
     def test_unicode(self):
         """Test unicoding of the closures works."""
+        # No, it's a method for unittest!
+        # pylint: disable=R0201
+
         for obj in TCClosure.objects.all():
             obj.__unicode__()
 
