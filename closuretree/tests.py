@@ -56,6 +56,11 @@ class BaseTestCase(TestCase):
         # It's only useful when we're working out why the tests fail.
         self.a.__unicode__()
 
+    def test_unicode(self):
+        """Test unicoding of the closures works."""
+        for obj in TCClosure.objects.all():
+            obj.__unicode__()
+
     def test_adding(self):
         """
         Tests that adding a new parent relationship creates closures
