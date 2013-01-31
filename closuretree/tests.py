@@ -174,3 +174,82 @@ class InitialClosureTestCase(TestCase):
         self.failUnlessEqual(TCClosure.objects.count(), 3)
         TC.objects.create(name="c", parent2=b)
         self.failUnlessEqual(TCClosure.objects.count(), 6)
+
+class IsTestCase(TestCase):
+    """Test some useful methods."""
+
+    def setUp(self):
+        self.a = TC.objects.create(name="a")
+        self.b = TC.objects.create(name="b", parent2=self.a)
+        self.c = TC.objects.create(name="c", parent2=self.b)
+        self.d = TC.objects.create(name="d", parent2=self.c)
+        self.e = TC.objects.create(name="e", parent2=self.b)
+        self.f = TC.objects.create(name="f", parent2=self.e)
+
+    def test_ancestor_of(self):
+        """Test is_ancestor_of method."""
+        self.assertEqual(self.a.is_ancestor_of(self.c), True)
+        self.assertEqual(self.a.is_ancestor_of(self.d), True)
+        self.assertEqual(self.a.is_ancestor_of(self.e), True)
+        self.assertEqual(self.d.is_ancestor_of(self.b), False)
+        self.assertEqual(
+            self.d.is_ancestor_of(self.b, include_self=True),
+            False
+        )
+        self.assertEqual(self.f.is_ancestor_of(self.f), False)
+        self.assertEqual(
+            self.f.is_ancestor_of(self.f, include_self=False),
+            False
+        )
+        self.assertEqual(self.f.is_ancestor_of(self.f, include_self=True), True)
+
+    def test_descendant_of(self):
+        """Test id_descendant_of method."""
+        self.assertEqual(self.a.is_descendant_of(self.a), False)
+        self.assertEqual(self.f.is_descendant_of(self.f), False)
+        self.assertEqual(
+            self.a.is_descendant_of(self.a, include_self=False), False
+        )
+        self.assertEqual(
+            self.a.is_descendant_of(self.a, include_self=True), True
+        )
+        self.assertEqual(self.a.is_descendant_of(self.c), False)
+        self.assertEqual(self.c.is_descendant_of(self.a), True)
+
+    def test_get_root(self):
+        """Test get_root method"""
+        self.assertEqual(self.a.get_root(), self.a)
+        self.assertEqual(self.b.get_root(), self.a)
+        self.assertEqual(self.f.get_root(), self.a)
+
+    def test_child_node(self):
+        """Test is_child_node method"""
+        self.assertEqual(self.a.is_child_node(), False)
+        self.assertEqual(self.b.is_child_node(), True)
+        self.assertEqual(self.f.is_child_node(), True)
+
+class PrepopulateTestCase(TestCase):
+    """Test prepopulating."""
+
+    def setUp(self):
+        self.a = TC.objects.create(name="a")
+        self.b = TC.objects.create(name="b", parent2=self.a)
+        self.c = TC.objects.create(name="c", parent2=self.b)
+        self.d = TC.objects.create(name="d", parent2=self.c)
+        self.e = TC.objects.create(name="e", parent2=self.b)
+        self.f = TC.objects.create(name="f", parent2=self.e)
+
+    def test_prepopulate(self):
+        """Test prepopulating"""
+        with self.assertNumQueries(6):
+            children = []
+            for node in self.a.get_descendants():
+                children.extend(list(node.get_children()))
+            self.assertEqual(len(children), 4)
+        with self.assertNumQueries(1):
+            children = []
+            queryset = self.a.get_descendants()
+            self.a.prepopulate(queryset)
+            for node in queryset:
+                children.extend(list(node.get_children()))
+            self.assertEqual(len(children), 4)

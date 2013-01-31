@@ -208,9 +208,10 @@ class ClosureModel(models.Model):
             descendants = descendants.exclude(pk=self.pk)
         return descendants.order_by("%s__depth" % self._closure_childref())
 
-    # Call like: blah.prepopulate(blah.get_descendants().select_related(stuff))
     def prepopulate(self, queryset):
-        """Perpopulate a descendants query's children efficiently."""
+        """Perpopulate a descendants query's children efficiently.
+            Call like: blah.prepopulate(blah.get_descendants().select_related(stuff))
+        """
         objs = list(queryset)
         hashobjs = dict([(x.pk, x) for x in objs] + [(self.pk, self)])
         for descendant in hashobjs.values():
@@ -250,19 +251,17 @@ class ClosureModel(models.Model):
 
     def is_descendant_of(self, other, include_self=False):
         """Is this node a descendant of `other`?"""
-        if include_self and other.pk == self.pk:
-            return True
+        if other.pk == self.pk:
+            return include_self
 
         return self._closure_model.objects.filter(
             parent=other,
             child=self
-        ).exists()
+        ).exclude(pk=self.pk).exists()
 
     def is_ancestor_of(self, other, include_self=False):
         """Is this node an ancestor of `other`?"""
-        if include_self and other.pk == self.pk:
-            return True
-        return other.is_descendant_of(self)
+        return other.is_descendant_of(self, include_self=include_self)
 
     def _closure_change_init(self):
         """Part of the change detection. Setting up"""
