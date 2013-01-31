@@ -52,6 +52,10 @@ class BaseTesting(TestCase):
         self.c = TC.objects.create(name="c")
         self.d = TC.objects.create(name="d")
 
+        # We cheat here, we don't care about the __unicode__ method,
+        # It's only useful when we're working out why the tests fail.
+        self.a.__unicode__
+
     def test_adding(self):
         """
         Tests that adding a new parent relationship creates closures
@@ -120,3 +124,25 @@ class AncestorTesting(TestCase):
         """Testing the children method."""
         self.failUnlessEqual(list(self.c.get_children()), [])
         self.failUnlessEqual(list(self.b.get_children()), [self.c])
+
+class RebuildTesting(TestCase):
+    """Test rebuilding the tree"""
+
+    def setUp(self):
+        self.a = TC.objects.create(name="a")
+        self.b = TC.objects.create(name="b")
+        self.b.parent2 = self.a
+        self.b.save()
+        self.c = TC.objects.create(name="c")
+        self.c.parent2 = self.b
+        self.c.save()
+        self.d = TC.objects.create(name="d")
+        self.d.parent2 = self.a
+        self.d.save()
+
+    def test_rebuild_from_full(self):
+        """Test a rebuild when the tree is correct."""
+
+        self.failUnlessEqual(TCClosure.objects.count(), 8)
+        TC.rebuildtable()
+        self.failUnlessEqual(TCClosure.objects.count(), 8)
