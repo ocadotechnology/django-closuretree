@@ -43,7 +43,7 @@ class TCSUB2(TCSUB):
     """Testing closure subclasses."""
     ef = models.IntegerField()
 
-class BaseTesting(TestCase):
+class BaseTestCase(TestCase):
     """Providing details for testing."""
 
     def setUp(self):
@@ -54,7 +54,7 @@ class BaseTesting(TestCase):
 
         # We cheat here, we don't care about the __unicode__ method,
         # It's only useful when we're working out why the tests fail.
-        self.a.__unicode__
+        self.a.__unicode__()
 
     def test_adding(self):
         """
@@ -82,7 +82,7 @@ class BaseTesting(TestCase):
         self.b.save()
         self.failUnlessEqual(TCClosure.objects.count(), 4)
 
-class AncestorTesting(TestCase):
+class AncestorTestCase(TestCase):
     """Testing things to do with ancestors."""
 
     def setUp(self):
@@ -125,7 +125,7 @@ class AncestorTesting(TestCase):
         self.failUnlessEqual(list(self.c.get_children()), [])
         self.failUnlessEqual(list(self.b.get_children()), [self.c])
 
-class RebuildTesting(TestCase):
+class RebuildTestCase(TestCase):
     """Test rebuilding the tree"""
 
     def setUp(self):
@@ -146,3 +146,31 @@ class RebuildTesting(TestCase):
         self.failUnlessEqual(TCClosure.objects.count(), 8)
         TC.rebuildtable()
         self.failUnlessEqual(TCClosure.objects.count(), 8)
+
+    def test_rebuild_from_empty(self):
+        """Test a rebuild when the tree is empty."""
+
+        TCClosure.objects.all().delete()
+        TC.rebuildtable()
+        self.failUnlessEqual(TCClosure.objects.count(), 8)
+
+    def test_rebuild_from_partial(self):
+        """Test a rebuild when the tree is partially empty."""
+
+        TCClosure.objects.get(parent__name='a', child__name='a').delete()
+        TCClosure.objects.get(parent__name='a', child__name='c').delete()
+        self.failUnlessEqual(TCClosure.objects.count(), 6)
+        TC.rebuildtable()
+        self.failUnlessEqual(TCClosure.objects.count(), 8)
+
+class InitialClosureTestCase(TestCase):
+    """Tests for when things are created with a parent."""
+
+    def test_creating_with_parent(self):
+        """Make sure closures are created when making objects."""
+        a = TC.objects.create(name="a")
+        self.failUnlessEqual(TCClosure.objects.count(), 1)
+        b = TC.objects.create(name="b", parent2=a)
+        self.failUnlessEqual(TCClosure.objects.count(), 3)
+        TC.objects.create(name="c", parent2=b)
+        self.failUnlessEqual(TCClosure.objects.count(), 6)

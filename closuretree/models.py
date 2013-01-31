@@ -294,6 +294,9 @@ class ClosureModel(models.Model):
                 self._closure_deletelink(self._closure_change_oldparent())
             self._closure_createlink()
             delattr(self, "_closure_old_parent_pk")
+        elif create:
+            # We still need to create links when we're first made
+            self._closure_createlink()
 
         return val
 
