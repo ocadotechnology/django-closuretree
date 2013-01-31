@@ -106,6 +106,10 @@ class AncestorTestCase(TestCase):
             list(self.c.get_ancestors(include_self=True)),
             [self.c, self.b, self.a]
         )
+        self.failUnlessEqual(
+            list(self.c.get_ancestors(include_self=True, depth=1)),
+            [self.c, self.b]
+        )
 
     def test_descendants(self):
         """Testing the descendants method."""
