@@ -74,6 +74,8 @@ class BaseTestCase(TestCase):
         self.failUnlessEqual(TCClosure.objects.count(), 5)
         self.c.parent2 = self.b
         self.c.save()
+        # Test double save
+        self.c.save()
         self.d.parent2 = self.c
         self.d.save()
         self.failUnlessEqual(TCClosure.objects.count(), 10)
@@ -89,6 +91,13 @@ class BaseTestCase(TestCase):
         self.b.parent2 = None
         self.b.save()
         self.failUnlessEqual(TCClosure.objects.count(), 4)
+        self.b.parent2 = self.a
+        self.b.save()
+        self.c.parent2 = self.b
+        self.c.save()
+        self.failUnlessEqual(TCClosure.objects.count(), 7)
+        self.b.delete()
+        self.failUnlessEqual(TCClosure.objects.count(), 2)
 
 class AncestorTestCase(TestCase):
     """Testing things to do with ancestors."""
@@ -265,3 +274,18 @@ class PrepopulateTestCase(TestCase):
             for node in queryset:
                 children.extend(list(node.get_children()))
             self.assertEqual(len(children), 4)
+
+    def test_prepopulate_not_root(self):
+        """Test prepopulating when we're not the root"""
+        with self.assertNumQueries(5):
+            children = []
+            for node in self.b.get_descendants():
+                children.extend(list(node.get_children()))
+            self.assertEqual(len(children), 2)
+        with self.assertNumQueries(1):
+            children = []
+            queryset = self.b.get_descendants()
+            self.b.prepopulate(queryset)
+            for node in queryset:
+                children.extend(list(node.get_children()))
+            self.assertEqual(len(children), 2)
