@@ -43,21 +43,6 @@ class TCSUB2(TCSUB):
     """Testing closure subclasses."""
     ef = models.IntegerField()
 
-class A(models.Model):
-    """Testing closures."""
-    foo = models.CharField(max_length=1, default='N')
-    
-    def __init__(self, *args, **kwargs):
-        super(A, self).__init__(*args, **kwargs)
-        
-
-    def __setattr__(self, item, value):
-        super(A, self).__setattr__(item, value)
-    
-class B(A):
-    """Testing closures."""
-    bar = models.CharField(max_length=1, default='X')
-
 class BaseTesting(TestCase):
     """Providing details for testing."""
 
