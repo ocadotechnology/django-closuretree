@@ -1,29 +1,50 @@
 """Tests for closuretree"""
+
+# This is kinda tricky...
+# pylint: disable=C0103
+# pylint: disable=E1101
+# pylint: disable=E0602
+# pylint: disable=R0903
+# pylint: disable=R0904
+# pylint: disable=
+# pylint: disable=
+
 from django.test import TestCase
 from django.db import models
 from closuretree.models import ClosureModel
 
 class TC(ClosureModel):
-    parent2 = models.ForeignKey("self", related_name="children", null=True, blank=True)
+    """A test model."""
+    parent2 = models.ForeignKey(
+        "self",
+        related_name="children",
+        null=True,
+        blank=True
+    )
     name = models.CharField(max_length=32)
     blah = models.ForeignKey("Blah", related_name="tcs", null=True, blank=True)
 
     class ClosureMeta(object):
+        """Closure options."""
         parent_attr = "parent2"
 
     def __unicode__(self):
         return "%s: %s" % (self.id, self.name)
 
 class Blah(models.Model):
+    """A test model for foreign keys"""
     thing = models.CharField(max_length=32)
 
 class TCSUB(TC):
+    """Testing closure subclasses."""
     extrafield = models.IntegerField()
 
 class TCSUB2(TCSUB):
+    """Testing closure subclasses."""
     ef = models.IntegerField()
 
 class A(models.Model):
+    """Testing closures."""
     foo = models.CharField(max_length=1, default='N')
     
     def __init__(self, *args, **kwargs):
@@ -34,9 +55,11 @@ class A(models.Model):
         super(A, self).__setattr__(item, value)
     
 class B(A):
+    """Testing closures."""
     bar = models.CharField(max_length=1, default='X')
 
 class BaseTesting(TestCase):
+    """Providing details for testing."""
 
     def setUp(self):
         self.a = TC.objects.create(name="a")
@@ -59,6 +82,9 @@ class BaseTesting(TestCase):
         self.failUnlessEqual(TCClosure.objects.count(), 10)
 
     def test_deletion(self):
+        """
+            Tests that deleting a relationship removes the closure entries.
+        """
         self.failUnlessEqual(TCClosure.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
@@ -68,6 +94,7 @@ class BaseTesting(TestCase):
         self.failUnlessEqual(TCClosure.objects.count(), 4)
 
 class AncestorTesting(TestCase):
+    """Testing things to do with ancestors."""
 
     def setUp(self):
         self.a = TC.objects.create(name="a")
@@ -79,17 +106,32 @@ class AncestorTesting(TestCase):
         self.c.save()
 
     def test_ancestors(self):
+        """Testing the ancestors method."""
         self.failUnlessEqual(list(self.a.get_ancestors()), [])
         self.failUnlessEqual(list(self.b.get_ancestors()), [self.a])
-        self.failUnlessEqual(list(self.a.get_ancestors(include_self=True)), [self.a])
-        self.failUnlessEqual(list(self.c.get_ancestors(include_self=True)), [self.c, self.b, self.a])
+        self.failUnlessEqual(
+            list(self.a.get_ancestors(include_self=True)),
+            [self.a]
+        )
+        self.failUnlessEqual(
+            list(self.c.get_ancestors(include_self=True)),
+            [self.c, self.b, self.a]
+        )
 
     def test_descendants(self):
+        """Testing the descendants method."""
         self.failUnlessEqual(list(self.c.get_descendants()), [])
         self.failUnlessEqual(list(self.b.get_descendants()), [self.c])
-        self.failUnlessEqual(list(self.a.get_descendants(include_self=True)), [self.a, self.b, self.c])
-        self.failUnlessEqual(list(self.c.get_descendants(include_self=True)), [self.c])
+        self.failUnlessEqual(
+            list(self.a.get_descendants(include_self=True)),
+            [self.a, self.b, self.c]
+        )
+        self.failUnlessEqual(
+            list(self.c.get_descendants(include_self=True)),
+            [self.c]
+        )
 
     def test_children(self):
+        """Testing the children method."""
         self.failUnlessEqual(list(self.c.get_children()), [])
         self.failUnlessEqual(list(self.b.get_children()), [self.c])

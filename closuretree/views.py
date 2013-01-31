@@ -1,1 +1,1 @@
-# Create your views here.
+'''The views are a lie.'''
