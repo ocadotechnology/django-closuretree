@@ -202,9 +202,9 @@ class ClosureModel(models.Model):
         for descendant in hashobjs.values():
             descendant._cached_children = []
         for descendant in objs:
-            if descendant._closure_parent_pk in hashobjs:
-                parent = hashobjs[descendant._closure_parent_pk]
-                parent._cached_children.append(descendant)
+            assert descendant._closure_parent_pk in hashobjs
+            parent = hashobjs[descendant._closure_parent_pk]
+            parent._cached_children.append(descendant)
 
     def get_children(self):
         """Return all the children of this object."""
