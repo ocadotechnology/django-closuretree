@@ -1,6 +1,6 @@
 #!/bin/bash
-cd testclosure
+cd test_project
 ./manage.py jenkins closuretree
 cd ..
 rm -r reports
-mv testclosure/reports .
+mv test_project/reports .
