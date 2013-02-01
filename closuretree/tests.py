@@ -289,3 +289,53 @@ class PrepopulateTestCase(TestCase):
             for node in queryset:
                 children.extend(list(node.get_children()))
             self.assertEqual(len(children), 2)
+
+class SentinelModel(ClosureModel):
+    """A model using a sentinel attribute."""
+    location = models.ForeignKey(
+        "IntermediateModel",
+        null=True,
+        blank=True
+    )
+
+    @property
+    def parent(self):
+        if self.location:
+            return self.location.real_parent
+
+    class ClosureMeta(object):
+        """Closure options."""
+        sentinel_attr = "location"
+        parent_attr = "parent"
+
+class IntermediateModel(models.Model):
+    real_parent = models.ForeignKey(
+        'SentinelModel',
+        null=True,
+        blank=True,
+    )
+
+class SentinelAttributeTestCase(TestCase):
+    """Test functionality of the sentinel attribute."""
+
+    def setUp(self):
+        self.a = SentinelModel.objects.create()
+        self.b = SentinelModel.objects.create()
+        self.c = SentinelModel.objects.create()
+        self.d = SentinelModel.objects.create()
+        self.l1 = IntermediateModel(real_parent=self.a)
+        self.l2 = IntermediateModel(real_parent=self.b)
+        self.l3 = IntermediateModel(real_parent=self.c)
+
+    def test_closure_creation(self):
+        '''Test creation of closures in the sentinel case'''
+
+        self.failUnlessEqual(SentinelModelClosure.objects.count(), 4)
+
+        self.b.location = self.l1
+        self.b.save()
+        self.failUnlessEqual(self.b.parent, self.a)
+        self.c.location = self.l2
+        self.c.save()
+
+        self.failUnlessEqual(SentinelModelClosure.objects.count(), 7)
