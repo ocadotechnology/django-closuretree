@@ -300,6 +300,7 @@ class SentinelModel(ClosureModel):
 
     @property
     def parent(self):
+        """Return the object's parent."""
         if self.location:
             return self.location.real_parent
 
@@ -309,6 +310,9 @@ class SentinelModel(ClosureModel):
         parent_attr = "parent"
 
 class IntermediateModel(models.Model):
+    """The intermediate model between the sentinel model
+        and its parent (itself).
+    """
     real_parent = models.ForeignKey(
         'SentinelModel',
         null=True,
