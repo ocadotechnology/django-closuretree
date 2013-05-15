@@ -24,6 +24,11 @@ def _closure_model_unicode(self):
 
 def create_closure_model(cls):
     """Creates a <Model>Closure model in the same module as the model."""
+    meta_vals = {
+        'unique_together':  (("parent", "child"),)
+    }
+    if getattr(cls._meta, 'db_table', None):
+        meta_vals['db_table'] = '%sclosure' % getattr(cls._meta, 'db_table')
     model = type('%sClosure' % cls.__name__, (models.Model,), {
         'parent': models.ForeignKey(
             cls.__name__,
@@ -36,9 +41,7 @@ def create_closure_model(cls):
         'depth': models.IntegerField(),
         '__module__':   cls.__module__,
         '__unicode__': _closure_model_unicode,
-        'Meta': type('Meta', (object,), {
-            'unique_together':  (("parent", "child"),)
-        }),
+        'Meta': type('Meta', (object,), meta_vals),
     })
     setattr(cls, "_closure_model", model)
     return model
