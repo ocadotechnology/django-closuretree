@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Django Closuretree's documentation!
+Welcome to django-closuretree's documentation!
 ==============================================
 
 **django-closuretree** is an implementation of a closure tree for tree-based
@@ -19,8 +19,7 @@ Requirements
 Basic Usage
 ===========
 
-To take advantage of **django-closuretree**, instead of inheriting your models from
-``django.db.models.Model``, inherit from ``closuretree.models.ClosureModel``:
+Inherit your models from ``closuretree.models.ClosureModel`` instead of ``django.db.models.Model``:
 
 .. code-block:: python
 
@@ -74,7 +73,7 @@ the following:
 Read the :doc:`closuretree` model documentation for more methods.
 
 API Documentation
------------------
+=================
 
 .. toctree::
    :maxdepth: 2
