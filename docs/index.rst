@@ -19,7 +19,7 @@ Requirements
 Basic Usage
 ===========
 
-To take advantage of django-closuretree, instead of inheriting your models from
+To take advantage of **django-closuretree**, instead of inheriting your models from
 ``django.db.models.Model``, inherit from ``closuretree.models.ClosureModel``:
 
 .. code-block:: python
@@ -52,8 +52,29 @@ relationship. This can be manually overriden:
         def __unicode__(self):
             return '%s: %s' % (self.id, self.name)
 
-Content
--------
+Perhaps the most useful methods provided by ``closuretree.models.ClosureModel`` are
+the following:
+
+.. code-block:: python
+
+    >> my_model = MyModel.objects.get(pk=10)
+    >> my_model.get_ancestors()
+    [<MyModel: 1: Foo>, <MyModel: 2: Bar>, <MyModel: 3: Fish>]
+    >> my_model.get_descendants()
+    [<MyModel: 11: Bob>, <MyModel: 12: Alice>]
+    >> my_model.get_descendants(depth=1)
+    [<MyModel: 11: Bob>]
+    >> my_model.get_root()
+    <MyModel: 1: Foo>
+    >> my_model.is_ancestor_of(MyModel.objects.get(name='Alice'))
+    True
+    >> my_model.is_descendant_of(MyModel.objects.get(name='Bar'))
+    True
+
+Read the :doc:`closuretree` model documentation for more methods.
+
+API Documentation
+-----------------
 
 .. toctree::
    :maxdepth: 2
