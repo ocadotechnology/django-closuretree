@@ -12,7 +12,7 @@
 # serve to show the default.
 
 import sys, os
-from gitversion import get_git_version
+from closuretree.version import __VERSION__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -53,7 +53,7 @@ copyright = u'2013, Mike Bryant'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = get_git_version(os.path.join(os.path.dirname(__file__), '../setup.py'))
+release = __VERSION__
 # The short X.Y version.
 version = '.'.join(release.split('.')[0:2])
 

@@ -1,13 +1,13 @@
 from setuptools import setup
-from gitversion import get_git_version
 import os
+
+from closuretree.version import __VERSION__
 
 setup(
     name='django-closuretree',
-    version=get_git_version(__file__),
+    version=__VERSION__,
     packages=['closuretree'],
     author='Mike Bryant',
     author_email='mike.bryant@ocado.com',
-    install_requires=['django >= 1.4'],
-    setup_requires=['gitversion'],
+    install_requires=['django >= 1.4', 'gitversion >= 2.1.1'],
 )

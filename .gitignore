@@ -1,5 +1,4 @@
 *.pyc
 *.egg-info
-.GITVERSION
 docs/_build
 deb_dist
