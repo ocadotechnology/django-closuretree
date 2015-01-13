@@ -357,3 +357,26 @@ class SentinelAttributeTestCase(TestCase):
         self.c.save()
 
         self.failUnlessEqual(SentinelModelClosure.objects.count(), 7)
+
+class TCNoMeta(ClosureModel):
+    """A test model without a ClosureMeta."""
+    parent = models.ForeignKey(
+        "self",
+        related_name="children",
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=32)
+
+class NoMetaTestCase(TestCase):
+    '''Testing models without a ClosureMeta.'''
+
+    def test_basic(self):
+        """
+        Basic test that you don't need the ClosureMeta class.
+        """
+        a = TCNoMeta.objects.create(name='a')
+        b = TCNoMeta.objects.create(name='b', parent=a)
+        c = TCNoMeta.objects.create(name='c', parent=b)
+        self.failUnlessEqual(a.get_descendants().count(), 2)
+        self.failUnlessEqual(c.get_ancestors().count(), 2)

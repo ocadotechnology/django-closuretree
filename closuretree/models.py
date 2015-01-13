@@ -145,18 +145,22 @@ class ClosureModel(models.Model):
         """The attribute we need to watch to tell if the
             parent/child relationships have changed
         """
-        if hasattr(self.ClosureMeta,"sentinel_attr"):
-            return self.ClosureMeta.sentinel_attr
-        else:
-            return self.ClosureMeta.parent_attr
+        meta = getattr(self, 'ClosureMeta', None)
+        return getattr(meta, 'sentinel_attr', self._closure_parent_attr)
+
+    @property
+    def _closure_parent_attr(self):
+        '''The attribute or property that holds the parent object.'''
+        meta = getattr(self, 'ClosureMeta', None)
+        return getattr(meta, 'parent_attr', 'parent')
 
     @property
     def _closure_parent_pk(self):
         """What our parent pk is in the closure tree."""
-        if hasattr(self, "%s_id" % self.ClosureMeta.parent_attr):
-            return getattr(self, "%s_id" % self.ClosureMeta.parent_attr)
+        if hasattr(self, "%s_id" % self._closure_parent_attr):
+            return getattr(self, "%s_id" % self._closure_parent_attr)
         else:
-            parent = getattr(self, self.ClosureMeta.parent_attr)
+            parent = getattr(self, self._closure_parent_attr)
             return parent.id if parent else None
 
     def _closure_deletelink(self, oldparentpk):
