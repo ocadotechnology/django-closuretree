@@ -23,7 +23,7 @@ from closuretree.version import __VERSION__
 
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../example_project'))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'example_project.settings')
 
 # -- General configuration -----------------------------------------------------
 
