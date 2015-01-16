@@ -23,7 +23,10 @@ setup(
     packages=find_packages(),
     author='Mike Bryant',
     author_email='mike.bryant@ocado.com',
-    install_requires=['django >= 1.4'],
+    install_requires=[
+        'django >= 1.4',
+        'django-autoconfig',
+    ],
     tests_require=['django-setuptest'],
     test_suite='setuptest.setuptest.SetupTestSuite',
     classifiers=[
