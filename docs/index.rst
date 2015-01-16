@@ -72,6 +72,34 @@ the following:
 
 Read the :doc:`closuretree` model documentation for more methods.
 
+Adding to existing models
+=========================
+
+If you add **django-closuretree** to existing models, you'll need to build the closure table for the pre-existing data:
+
+.. code-block:: python
+
+    MyModel.rebuildtable()
+
+Indirect relations
+==================
+
+If your model is linked to itself via an indirect relationship (for example, ModelA -> ModelB -> ModelC -> ModelA), then you'll need to define a parent property that traverses this relationship, and set a sentinel attribute as the foriegn key to ModelB:
+
+.. code-block:: python
+
+    class ModelA(ClosureModel):
+        model_b = models.ForeignKey(ModelB)
+
+        @property
+        def parent(self):
+            return self.model_b.model_c.model_a
+
+        class ClosureMeta:
+            sentinel_attr = 'model_b'
+           
+Closuretree will watch the sentinel attribute for changes, and use the value of the parent property when rebuilding the tree.
+
 API Documentation
 =================
 
