@@ -11,6 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# pylint: disable=W0622
+
 import sys, os
 from closuretree.version import __VERSION__
 
@@ -46,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Django Closuretree'
-copyright = u'2013, Mike Bryant'
+copyright = u'2015, Ocado Innovation Limited'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
