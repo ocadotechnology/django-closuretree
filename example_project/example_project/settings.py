@@ -30,6 +30,7 @@ INSTALLED_APPS = (
 )
 
 try:
+    # pylint: disable=E0611
     from example_project.local_settings import *
 except ImportError:
     pass
