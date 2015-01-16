@@ -2,6 +2,11 @@
 django-closuretree
 ******************
 
+
+.. image:: https://landscape.io/github/ocadotechnology/django-closuretree/master/landscape.svg
+   :target: https://landscape.io/github/ocadotechnology/django-closuretree/master
+   :alt: Code Health Badge
+
 ``django-closuretree`` is an implementation of the `closure tree <http://homepages.inf.ed.ac.uk/libkin/papers/tc-sql.pdf>`_ technique for `Django <https://djangoproject.com>`_ applications designed to provide efficient querying of `tree-based structures <http://en.wikipedia.org/wiki/Tree_%28data_structure%29>`_ in a relational database. Its goal is to reduce the number of queries required when querying the children or parents of a given object.
 
 Given the following model:
