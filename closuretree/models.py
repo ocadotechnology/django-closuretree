@@ -79,10 +79,8 @@ class ClosureModelBase(ModelBase):
 
 class ClosureModel(models.Model):
     """Provides methods to assist in a tree based structure."""
-    __metaclass__ = ClosureModelBase
-    
-    # This is an abstract model, it doesn't need a __unicode__
     # pylint: disable=W5101
+    __metaclass__ = ClosureModelBase
 
     class Meta:
         """We make this an abstract class, it needs to be inherited from."""
