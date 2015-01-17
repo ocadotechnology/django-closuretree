@@ -14,8 +14,11 @@ install:
 - pip install gitversion
 - pip install "Django${DJANGO}"
 - pip install .
+- pip install coveralls
 script:
 - python setup.py test
+after_success:
+- coveralls
 matrix:
   exclude:
   - python: 2.6
@@ -26,3 +29,14 @@ matrix:
     env: DJANGO=">=1.4,<1.5"
   - python: pypy3
     env: DJANGO=">=1.4,<1.5"
+deploy:
+  provider: pypi
+  user: ocadotechnology
+  password:
+    secure: TJppt3y6oC580PqqqBTMmMjZ5n9L299zRzan/kbW1R7jj6yrtBy+RTj/FMBUMvlz5pBMdQmBX6aVsv56fZzzl9Hl0dgb0F70BeRWsUSpjVXDXefwc0NN0TzPJqcwm0N6aOfo9reYYdTT5u9BocCoH6nqaHEohOpwlmVRe3Xwaag=
+  distributions: "bdist_wheel sdist"
+  on:
+    all_branches: true
+    repo: ocadotechnology/django-closuretree
+    tags: true
+    condition: "$DJANGO = '>=1.7,<1.8'"
