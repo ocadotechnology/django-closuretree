@@ -9,6 +9,9 @@ django-closuretree
 .. image:: https://landscape.io/github/ocadotechnology/django-closuretree/master/landscape.svg?style=flat
    :target: https://landscape.io/github/ocadotechnology/django-closuretree/master
    :alt: Code Health Badge
+.. image:: https://coveralls.io/repos/ocadotechnology/django-closuretree/badge.svg?style=flat
+   :target: https://coveralls.io/r/ocadotechnology/django-closuretree
+   :alt: Coverage Status
 .. image:: https://readthedocs.org/projects/django-closuretree/badge/?version=latest
    :target: http://django-closuretree.readthedocs.org/en/latest/
    :alt: Documentation Status
