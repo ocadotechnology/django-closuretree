@@ -28,6 +28,7 @@
 
 from django.db import models
 from django.db.models.base import ModelBase
+from django.utils.six import with_metaclass
 import sys
 
 def _closure_model_unicode(self):
@@ -77,10 +78,9 @@ class ClosureModelBase(ModelBase):
                 create_closure_model(cls)
             )
 
-class ClosureModel(models.Model):
+class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
     """Provides methods to assist in a tree based structure."""
     # pylint: disable=W5101
-    __metaclass__ = ClosureModelBase
 
     class Meta:
         """We make this an abstract class, it needs to be inherited from."""

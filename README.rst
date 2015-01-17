@@ -3,6 +3,9 @@ django-closuretree
 ******************
 
 
+.. image:: https://travis-ci.org/ocadotechnology/django-closuretree.svg
+   :target: https://travis-ci.org/ocadotechnology/django-closuretree
+   :alt: Build Status
 .. image:: https://landscape.io/github/ocadotechnology/django-closuretree/master/landscape.svg?style=flat
    :target: https://landscape.io/github/ocadotechnology/django-closuretree/master
    :alt: Code Health Badge
