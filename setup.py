@@ -24,6 +24,7 @@ setup(
     author='Mike Bryant',
     author_email='mike.bryant@ocado.com',
     description='Efficient tree-based datastructure for Django',
+    long_description=open('README.rst').read(),
     url='https://github.com/ocadotechnology/django-closuretree/',
     install_requires=[
         'django >= 1.4',
