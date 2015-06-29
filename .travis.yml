@@ -33,7 +33,7 @@ deploy:
   provider: pypi
   user: ocadotechnology
   password:
-    secure: TJppt3y6oC580PqqqBTMmMjZ5n9L299zRzan/kbW1R7jj6yrtBy+RTj/FMBUMvlz5pBMdQmBX6aVsv56fZzzl9Hl0dgb0F70BeRWsUSpjVXDXefwc0NN0TzPJqcwm0N6aOfo9reYYdTT5u9BocCoH6nqaHEohOpwlmVRe3Xwaag=
+    secure: kdfRG0+3xsH4DSlTtVi8WT8/vhTzlfC58c0gP/MhsrN7k7ffGs6fjxkUoKpIGPZXV+v9kI5elYkFs4wInOrtq5ZgPHKMTpaHxQLrDtCkurYY7mD0e9KP2xVjvPEDQxDrynn1/x75Doi0Oe9StJ5E2odUJ0HcOwqhlKXJuOZa19M=
   distributions: "bdist_wheel sdist"
   on:
     all_branches: true
