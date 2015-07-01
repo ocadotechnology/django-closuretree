@@ -108,8 +108,8 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
             C._toplevel() will return A.
         """
         superclasses = (
-            set(ClosureModel.__subclasses__()) &
-            cls._meta.get_parent_list()
+            list(set(ClosureModel.__subclasses__()) &
+                 set(cls._meta.get_parent_list()))
         )
         return next(iter(superclasses)) if superclasses else cls
 
