@@ -341,9 +341,9 @@ class SentinelAttributeTestCase(TestCase):
         self.b = SentinelModel.objects.create()
         self.c = SentinelModel.objects.create()
         self.d = SentinelModel.objects.create()
-        self.l1 = IntermediateModel(real_parent=self.a)
-        self.l2 = IntermediateModel(real_parent=self.b)
-        self.l3 = IntermediateModel(real_parent=self.c)
+        self.l1 = IntermediateModel.objects.create(real_parent=self.a)
+        self.l2 = IntermediateModel.objects.create(real_parent=self.b)
+        self.l3 = IntermediateModel.objects.create(real_parent=self.c)
 
     def test_closure_creation(self):
         '''Test creation of closures in the sentinel case'''
@@ -357,6 +357,22 @@ class SentinelAttributeTestCase(TestCase):
         self.c.save()
 
         self.failUnlessEqual(SentinelModelClosure.objects.count(), 7)
+
+    def test_num_queries(self):
+        '''Test that we don't need to access the objects until we make a change.'''
+        self.b.location = self.l1
+        self.b.save()
+        self.c.location = self.l1
+        self.c.save()
+
+        with self.assertNumQueries(1):
+            x = SentinelModel.objects.get(pk=self.b.pk)
+            x.location = self.l1
+
+        with self.assertNumQueries(1):
+            x = SentinelModel.objects.select_related('location__real_parent').get(pk=self.b.pk)
+            x.location = self.l2
+
 
 class TCNoMeta(ClosureModel):
     """A test model without a ClosureMeta."""

@@ -89,14 +89,26 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
         abstract = True
 
     def __setattr__(self, name, value):
+        if name.endswith('_id'):
+            id_field_name = name
+        else:
+            id_field_name = "%s_id" % name
         if (
-            name.startswith(self._closure_sentinel_attr) and
-            hasattr(self, name) and
-            not self._closure_change_check()
+            name.startswith(self._closure_sentinel_attr) and  # It's the right attribute
+            hasattr(self, id_field_name) and  # It's already been set
+            not self._closure_change_check()  # The old value isn't stored
         ):
-            # Already set once, and not already stored the old
-            # value, need to take a copy before it changes
-            self._closure_change_init()
+            if name.endswith('_id'):
+                obj_id = value
+            elif value:
+                obj_id = value.pk
+            else:
+                obj_id = None
+            # If this is just setting the same value again, we don't need to do anything
+            if getattr(self, id_field_name) != obj_id:
+                # Already set once, and not already stored the old
+                # value, need to take a copy before it changes
+                self._closure_change_init()
         super(ClosureModel, self).__setattr__(name, value)
 
     @classmethod
