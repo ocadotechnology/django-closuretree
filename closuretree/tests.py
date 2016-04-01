@@ -23,9 +23,11 @@
 # pylint: disable=
 # pylint: disable=
 
+from django import VERSION
 from django.test import TestCase
 from django.db import models
 from closuretree.models import ClosureModel
+import uuid
 
 class TC(ClosureModel):
     """A test model."""
@@ -43,7 +45,7 @@ class TC(ClosureModel):
         parent_attr = "parent2"
 
     def __unicode__(self):
-        return "%s: %s" % (self.id, self.name)
+        return "%s: %s" % (self.pk, self.name)
 
 class Blah(models.Model):
     """A test model for foreign keys"""
@@ -60,11 +62,14 @@ class TCSUB2(TCSUB):
 class BaseTestCase(TestCase):
     """Providing details for testing."""
 
+    normal_model = TC
+    closure_model = TCClosure
+
     def setUp(self):
-        self.a = TC.objects.create(name="a")
-        self.b = TC.objects.create(name="b")
-        self.c = TC.objects.create(name="c")
-        self.d = TC.objects.create(name="d")
+        self.a = self.normal_model.objects.create(name="a")
+        self.b = self.normal_model.objects.create(name="b")
+        self.c = self.normal_model.objects.create(name="c")
+        self.d = self.normal_model.objects.create(name="d")
 
         # We cheat here, we don't care about the __unicode__ method,
         # It's only useful when we're working out why the tests fail.
@@ -75,43 +80,70 @@ class BaseTestCase(TestCase):
         # No, it's a method for unittest!
         # pylint: disable=R0201
 
-        for obj in TCClosure.objects.all():
+        for obj in self.closure_model.objects.all():
             obj.__unicode__()
 
     def test_adding(self):
         """
         Tests that adding a new parent relationship creates closures
         """
-        self.failUnlessEqual(TCClosure.objects.count(), 4)
+        self.failUnlessEqual(self.closure_model.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 5)
+        self.failUnlessEqual(self.closure_model.objects.count(), 5)
         self.c.parent2 = self.b
         self.c.save()
         # Test double save
         self.c.save()
         self.d.parent2 = self.c
         self.d.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 10)
+        self.failUnlessEqual(self.closure_model.objects.count(), 10)
 
     def test_deletion(self):
         """
             Tests that deleting a relationship removes the closure entries.
         """
-        self.failUnlessEqual(TCClosure.objects.count(), 4)
+        self.failUnlessEqual(self.closure_model.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 5)
+        self.failUnlessEqual(self.closure_model.objects.count(), 5)
         self.b.parent2 = None
         self.b.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 4)
+        self.failUnlessEqual(self.closure_model.objects.count(), 4)
         self.b.parent2 = self.a
         self.b.save()
         self.c.parent2 = self.b
         self.c.save()
-        self.failUnlessEqual(TCClosure.objects.count(), 7)
+        self.failUnlessEqual(self.closure_model.objects.count(), 7)
         self.b.delete()
-        self.failUnlessEqual(TCClosure.objects.count(), 2)
+        self.failUnlessEqual(self.closure_model.objects.count(), 2)
+
+
+if VERSION >= (1, 8):
+    class UUIDTC(ClosureModel):
+        '''Testing support for models with a UUID primary key. See #30'''
+        primary_key = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+        parent2 = models.ForeignKey(
+            "self",
+            related_name="children",
+            null=True,
+            blank=True,
+        )
+        name = models.CharField(max_length=32)
+
+        class ClosureMeta(object):
+            """Closure options."""
+            parent_attr = "parent2"
+
+        def __unicode__(self):
+            return "%s: %s" % (self.pk, self.name)
+
+
+    class UUIDTestCase(BaseTestCase):
+        '''Testing UUID models. See #30'''
+        normal_model = UUIDTC
+        closure_model = UUIDTCClosure
+
 
 class AncestorTestCase(TestCase):
     """Testing things to do with ancestors."""
