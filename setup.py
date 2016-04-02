@@ -30,7 +30,7 @@ setup(
         'django >= 1.4',
         'django-autoconfig',
     ],
-    tests_require=['django-setuptest'],
+    tests_require=['django-setuptest >= 0.2'],
     test_suite='setuptest.setuptest.SetupTestSuite',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

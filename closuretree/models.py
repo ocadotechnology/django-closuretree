@@ -28,6 +28,8 @@
 
 from django.db import models
 from django.db.models.base import ModelBase
+from django.db.models.signals import post_save, pre_delete
+from django.dispatch import receiver
 from django.utils.six import with_metaclass
 import sys
 
@@ -174,7 +176,7 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
             return getattr(self, "%s_id" % self._closure_parent_attr)
         else:
             parent = getattr(self, self._closure_parent_attr)
-            return parent.id if parent else None
+            return parent.pk if parent else None
 
     def _closure_deletelink(self, oldparentpk):
         """Remove incorrect links from the closure tree."""
@@ -188,10 +190,10 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
     def _closure_createlink(self):
         """Create a link in the closure tree."""
         linkparents = self._closure_model.objects.filter(
-            child__id=self._closure_parent_pk
+            child__pk=self._closure_parent_pk
         ).values("parent", "depth")
         linkchildren = self._closure_model.objects.filter(
-            parent__id=self.pk
+            parent__pk=self.pk
         ).values("child", "depth")
         newlinks = [self._closure_model(
             parent_id=p['parent'],
@@ -296,28 +298,32 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
         """Part of the change detection. What we used to be"""
         return self._closure_old_parent_pk
 
-    def save(self, *args, **kwargs):
-        create = not self.id
-        val = super(ClosureModel, self).save(*args, **kwargs)
+
+@receiver(post_save, dispatch_uid='closure-model-save')
+def closure_model_save(sender, **kwargs):
+    if issubclass(sender, ClosureModel):
+        instance = kwargs['instance']
+        create = kwargs['created']
         if create:
-            closure_instance = self._closure_model(
-                parent=self,
-                child=self,
+            closure_instance = instance._closure_model(
+                parent=instance,
+                child=instance,
                 depth=0
             )
             closure_instance.save()
-        if self._closure_change_check():
+        if instance._closure_change_check():
             #Changed parents.
-            if self._closure_change_oldparent():
-                self._closure_deletelink(self._closure_change_oldparent())
-            self._closure_createlink()
-            delattr(self, "_closure_old_parent_pk")
+            if instance._closure_change_oldparent():
+                instance._closure_deletelink(instance._closure_change_oldparent())
+            instance._closure_createlink()
+            delattr(instance, "_closure_old_parent_pk")
         elif create:
             # We still need to create links when we're first made
-            self._closure_createlink()
+            instance._closure_createlink()
 
-        return val
 
-    def delete(self, *args, **kwargs):
-        self._closure_deletelink(self._closure_parent_pk)
-        super(ClosureModel, self).delete(*args, **kwargs)
+@receiver(pre_delete, dispatch_uid='closure-model-delete')
+def closure_model_delete(sender, **kwargs):
+    if issubclass(sender, ClosureModel):
+        instance = kwargs['instance']
+        instance._closure_deletelink(instance._closure_parent_pk)
