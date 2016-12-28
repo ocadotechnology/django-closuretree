@@ -100,6 +100,15 @@ If your model is linked to itself via an indirect relationship (for example, Mod
            
 Closuretree will watch the sentinel attribute for changes, and use the value of the parent property when rebuilding the tree.
 
+Using the ``update`` QuerySet method
+====================================
+
+If you change the parent field of a model (or number of models) using the QuerySet ``update`` method (i.e. ``MyModel.objects.filter(...).update(parent=...)```) you'll need to rebuild the closure table for that model manually, as the pre- and post-save signal handlers are not called:
+
+.. code-block:: python
+
+    MyModel.rebuildtable()
+
 API Documentation
 =================
 
