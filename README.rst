@@ -47,7 +47,10 @@ However, for recursive lookups, this results in a large number of queries. Inste
 
     class Node(ClosureModel):
         name = models.CharField(max_length=24)
-        parent = models.ForeignKey('self', related_name='children')
+        parent = models.ForeignKey('self', related_name='children', null=True)
+
+    a = Node.objects.create(name='A')
+    Node.objects.create(name='B', parent=a)
 
     Node.objects.get(name='A').get_descendants()
 
