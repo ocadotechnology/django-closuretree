@@ -27,7 +27,7 @@ setup(
     long_description=open('README.rst').read(),
     url='https://github.com/ocadotechnology/django-closuretree/',
     install_requires=[
-        'django >= 1.4, < 1.11',
+        'django >= 1.4, < 1.12',
         'django-autoconfig',
     ],
     tests_require=['django-setuptest >= 0.2'],
