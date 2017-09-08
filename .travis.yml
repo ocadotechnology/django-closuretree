@@ -6,7 +6,8 @@ env:
 - DJANGO=">=1.7,<1.8"
 - DJANGO=">=1.8,<1.9"
 - DJANGO=">=1.9,<1.10"
-- DJANGO=">=1.10,<1.12"
+- DJANGO=">=1.10,<1.11"
+- DJANGO=">=1.11,<1.12"
 install:
 - pip install gitversion
 - pip install "Django${DJANGO}"
@@ -25,7 +26,9 @@ matrix:
   - python: 3.4
     env: DJANGO=">=1.9,<1.10"
   - python: 3.5
-    env: DJANGO=">=1.10,<1.12"
+    env: DJANGO=">=1.10,<1.11"
+  - python: 3.5
+    env: DJANGO=">=1.11,<1.12"
   - python: pypy3
     env: DJANGO=">=1.8,<1.9"
   - python: pypy
@@ -40,4 +43,4 @@ deploy:
     all_branches: true
     repo: ocadotechnology/django-closuretree
     tags: true
-    condition: "$DJANGO = '>=1.7,<1.8'"
+    condition: "$DJANGO = '>=1.11,<1.12'"
