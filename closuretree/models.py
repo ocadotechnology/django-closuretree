@@ -73,7 +73,7 @@ class ClosureModelBase(ModelBase):
             to doing all the normal django stuff.
         """
         super(ClosureModelBase, cls).__init__(name, bases, dct)
-        if not cls._meta.get_parent_list() and cls.__module__ != __name__:
+        if not cls._meta.get_parent_list() and not cls._meta.abstract:
             setattr(
                 sys.modules[cls.__module__],
                 '%sClosure' % cls.__name__,
