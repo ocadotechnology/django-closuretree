@@ -428,3 +428,33 @@ class NoMetaTestCase(TestCase):
         c = TCNoMeta.objects.create(name='c', parent=b)
         self.failUnlessEqual(a.get_descendants().count(), 2)
         self.failUnlessEqual(c.get_ancestors().count(), 2)
+
+class TCAbstract(ClosureModel):
+    """A test model with Meta.abstract = True."""
+
+    class Meta:
+        abstract = True
+
+    parent = models.ForeignKey(
+        "self",
+        related_name="children",
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=32)
+
+class TCConcrete(TCAbstract):
+    """A test model inheriting from abstract base model."""
+    pass
+
+class AbstractModelTestCase(TestCase):
+    """Test a concrete model inherited from an abstract model."""
+
+    normal_model = TCConcrete
+    closure_model = TCConcreteClosure
+
+    def test_closure_table_of_concrete_model(self):
+        """Test the closure table of the concrete model operates correctly."""
+        self.a = self.normal_model.objects.create(name="a")
+        self.b = self.normal_model.objects.create(name="b", parent=self.a)
+        self.assertEqual(self.closure_model.objects.count(), 3)
