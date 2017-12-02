@@ -26,12 +26,18 @@
 # Public methods are useful!
 # pylint: disable=R0904
 
-from django.db import models, transaction
+from django.db import models
 from django.db.models.base import ModelBase
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.utils.six import with_metaclass
 import sys
+
+try:
+    from django.db.transaction import atomic
+except ImportError:
+    # On django < 1.6, instead of atomic() use commit_on_success()
+    from django.db.transaction import commit_on_success as atomic
 
 def _closure_model_unicode(self):
     """__unicode__ implementation for the dynamically created
@@ -124,7 +130,7 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
         # post_save() is then received by closure_model_save() function,
         # which saves closure model.
         # we're going to wrap this series of operations in a transaction.
-        with transaction.atomic():
+        with atomic():
             super(ClosureModel, self).save_base(*args, **kwargs)
 
     @classmethod
