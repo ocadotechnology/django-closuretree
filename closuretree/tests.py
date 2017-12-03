@@ -27,6 +27,7 @@ from django import VERSION
 from django.test import TestCase, TransactionTestCase
 from django.db import models
 from django.db.utils import IntegrityError
+from django.core.management import call_command
 from closuretree.models import ClosureModel
 import uuid
 
@@ -129,6 +130,15 @@ class DirtyParentTestCase(TransactionTestCase):
         self.b = self.normal_model.objects.create(name="b")
         self.c = self.normal_model.objects.create(name="c")
         self.d = self.normal_model.objects.create(name="d")
+
+    if VERSION < (1, 5):
+        def _post_teardown(self):
+            """Support testing on older versions of Django.
+            
+            We need to manually flush the DB to run the tests successfully in
+            Django < 1.5"""
+            super(DirtyParentTestCase, self)._post_teardown()
+            call_command('flush', interactive=False)
 
     def test_selfreferencing_parent(self):
         """Tests that instances with self-referencing parents are not saved"""
