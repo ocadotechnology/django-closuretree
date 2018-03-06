@@ -15,10 +15,10 @@ django-closuretree
 .. image:: https://coveralls.io/repos/ocadotechnology/django-closuretree/badge.svg
    :target: https://coveralls.io/r/ocadotechnology/django-closuretree
    :alt: Test Coverage
-.. image:: https://pypip.in/v/django-closuretree/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/django-closuretree.svg?style=flat
    :target: https://pypi.python.org/pypi/django-closuretree/
    :alt: Version Badge
-.. image:: https://pypip.in/license/django-closuretree/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/l/django-closuretree.svg?style=flat
    :target: https://pypi.python.org/pypi/django-closuretree/
    :alt: License Badge
 
