@@ -33,6 +33,12 @@ from django.dispatch import receiver
 from django.utils.six import with_metaclass
 import sys
 
+try:
+    from django.db.transaction import atomic
+except ImportError:
+    # On django < 1.6, instead of atomic() use commit_on_success()
+    from django.db.transaction import commit_on_success as atomic
+
 def _closure_model_unicode(self):
     """__unicode__ implementation for the dynamically created
         <Model>Closure model.
@@ -115,6 +121,17 @@ class ClosureModel(with_metaclass(ClosureModelBase, models.Model)):
                 # value, need to take a copy before it changes
                 self._closure_change_init()
         super(ClosureModel, self).__setattr__(name, value)
+
+    def save_base(self, *args, **kwargs):
+        """Wrap the saving operation of this model and that of the closure
+            table in one transaction.
+        """
+        # the superclass save_base() sends post_save() signal.
+        # post_save() is then received by closure_model_save() function,
+        # which saves closure model.
+        # we're going to wrap this series of operations in a transaction.
+        with atomic():
+            super(ClosureModel, self).save_base(*args, **kwargs)
 
     @classmethod
     def _toplevel(cls):

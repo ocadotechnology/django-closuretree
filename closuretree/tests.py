@@ -24,8 +24,10 @@
 # pylint: disable=
 
 from django import VERSION
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.db import models
+from django.db.utils import IntegrityError
+from django.core.management import call_command
 from closuretree.models import ClosureModel
 import uuid
 
@@ -118,6 +120,63 @@ class BaseTestCase(TestCase):
         self.b.delete()
         self.failUnlessEqual(self.closure_model.objects.count(), 2)
 
+class DirtyParentTestCase(TransactionTestCase):
+
+    normal_model = TC
+    closure_model = TCClosure
+
+    def setUp(self):
+        self.a = self.normal_model.objects.create(name="a")
+        self.b = self.normal_model.objects.create(name="b")
+        self.c = self.normal_model.objects.create(name="c")
+        self.d = self.normal_model.objects.create(name="d")
+
+    if VERSION < (1, 5):
+        def _post_teardown(self):
+            """Support testing on older versions of Django.
+            
+            We need to manually flush the DB to run the tests successfully in
+            Django < 1.5"""
+            super(DirtyParentTestCase, self)._post_teardown()
+            call_command('flush', interactive=False)
+
+    def test_selfreferencing_parent(self):
+        """Tests that instances with self-referencing parents are not saved"""
+        self.b.parent2 = self.a
+        self.b.save()
+        self.c.parent2 = self.b
+        self.c.save()
+
+        # this is the prerequisite of this test:
+        # closure model contains 7 rows before we save dirty data
+        self.assertEqual(self.closure_model.objects.count(), 7)
+
+        # dirty data
+        self.b.parent2 = self.b
+        # save dirty data
+        self.assertRaises(IntegrityError, self.b.save)
+
+        # closure model contains the same number of data as before
+        self.assertEqual(self.closure_model.objects.count(), 7)
+
+    def test_parent_referencing_child(self):
+        """Tests instances with circular-referencing parents are not saved"""
+        self.b.parent2 = self.a
+        self.b.save()
+        self.c.parent2 = self.b
+        self.c.save()
+
+        # this is the prerequisite of this test:
+        # closure model contains 7 rows before we save dirty data
+        self.assertEqual(self.closure_model.objects.count(), 7)
+
+        # dirty data
+        self.b.parent2 = self.c
+        # save dirty data
+        self.assertRaises(IntegrityError, self.b.save)
+
+        # closure model contains the same number of data as before
+        self.assertEqual(self.closure_model.objects.count(), 7)
 
 if VERSION >= (1, 8):
     class UUIDTC(ClosureModel):
