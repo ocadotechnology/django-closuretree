@@ -29,6 +29,7 @@ setup(
     install_requires=[
         'django >= 1.4, < 1.12',
         'django-autoconfig',
+        'gitversion',
     ],
     tests_require=['django-setuptest >= 0.2'],
     test_suite='setuptest.setuptest.SetupTestSuite',
