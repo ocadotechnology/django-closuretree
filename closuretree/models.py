@@ -37,7 +37,7 @@ def _closure_model_unicode(self):
     """__unicode__ implementation for the dynamically created
         <Model>Closure model.
     """
-    return "Closure from %s to %s" % (self.parent, self.child)
+    return u"Closure from %s to %s" % (self.parent, self.child)
 
 def create_closure_model(cls):
     """Creates a <Model>Closure model in the same module as the model."""
