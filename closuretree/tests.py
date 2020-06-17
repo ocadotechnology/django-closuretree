@@ -29,16 +29,23 @@ from django.db import models
 from closuretree.models import ClosureModel
 import uuid
 
+
+class Blah(models.Model):
+    """A test model for foreign keys"""
+    thing = models.CharField(max_length=32)
+
+
 class TC(ClosureModel):
     """A test model."""
     parent2 = models.ForeignKey(
         "self",
+        on_delete=models.CASCADE,
         related_name="children",
         null=True,
         blank=True
     )
     name = models.CharField(max_length=32)
-    blah = models.ForeignKey("Blah", related_name="tcs", null=True, blank=True)
+    blah = models.ForeignKey("Blah", on_delete=models.CASCADE, related_name="tcs", null=True, blank=True)
 
     class ClosureMeta(object):
         """Closure options."""
@@ -46,10 +53,6 @@ class TC(ClosureModel):
 
     def __unicode__(self):
         return "%s: %s" % (self.pk, self.name)
-
-class Blah(models.Model):
-    """A test model for foreign keys"""
-    thing = models.CharField(max_length=32)
 
 class TCSUB(TC):
     """Testing closure subclasses."""
@@ -125,6 +128,7 @@ if VERSION >= (1, 8):
         primary_key = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
         parent2 = models.ForeignKey(
             "self",
+            on_delete=models.CASCADE,
             related_name="children",
             null=True,
             blank=True,
@@ -340,6 +344,7 @@ class SentinelModel(ClosureModel):
     """A model using a sentinel attribute."""
     location = models.ForeignKey(
         "IntermediateModel",
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
@@ -361,6 +366,7 @@ class IntermediateModel(models.Model):
     """
     real_parent = models.ForeignKey(
         'SentinelModel',
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
@@ -410,6 +416,7 @@ class TCNoMeta(ClosureModel):
     """A test model without a ClosureMeta."""
     parent = models.ForeignKey(
         "self",
+        on_delete=models.CASCADE,
         related_name="children",
         null=True,
         blank=True
@@ -437,6 +444,7 @@ class TCAbstract(ClosureModel):
 
     parent = models.ForeignKey(
         "self",
+        on_delete=models.CASCADE,
         related_name="children",
         null=True,
         blank=True
