@@ -247,7 +247,7 @@ class IsTestCase(TestCase):
 
     def setUp(self):
         self.a = TC.objects.create(name="a")
-        self.b = TC.objects.create(name="b", parent2=self.a)
+        self.b = TC.objects.create(id=3, name="b", parent2=self.a)
         self.c = TC.objects.create(name="c", parent2=self.b)
         self.d = TC.objects.create(name="d", parent2=self.c)
         self.e = TC.objects.create(name="e", parent2=self.b)
@@ -281,6 +281,10 @@ class IsTestCase(TestCase):
             self.a.is_descendant_of(self.a, include_self=True), True
         )
         self.assertEqual(self.a.is_descendant_of(self.c), False)
+        self.assertEqual(
+            self.b._closure_model.objects.get(parent=self.a, child=self.b).pk, self.b.pk
+        )
+        self.assertEqual(self.b.is_descendant_of(self.a), True)
         self.assertEqual(self.c.is_descendant_of(self.a), True)
 
     def test_get_root(self):
